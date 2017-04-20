@@ -20,6 +20,7 @@ static bool sIsDebug = false;
 static HookProcessWorker* sIOHook = nullptr;
 
 static std::queue<uiohook_event *> zqueue;
+static std::queue<int> typequeue;
 
 // Native thread errors.
 #define UIOHOOK_ERROR_THREAD_CREATE				0x10
@@ -123,6 +124,7 @@ void dispatch_proc(uiohook_event * const event) {
     case EVENT_MOUSE_DRAGGED:
     case EVENT_MOUSE_WHEEL:
       zqueue.push(event);
+      typequeue.push(event->type);
       sIOHook->fHookExecution->Send(event, sizeof(event));
       break;
   }
@@ -409,23 +411,23 @@ fHookExecution(nullptr)
 
 }
 
-v8::Local<v8::Object> fillEventObject(uiohook_event *event) {
+v8::Local<v8::Object> fillEventObject(uiohook_event *event, int type) {
   v8::Local<v8::Object> obj = Nan::New<v8::Object>();
 
-  obj->Set(Nan::New("type").ToLocalChecked(), Nan::New((uint16_t)event->type));
+  obj->Set(Nan::New("type").ToLocalChecked(), Nan::New((uint16_t)type));
   obj->Set(Nan::New("mask").ToLocalChecked(), Nan::New((uint16_t)event->mask));
   obj->Set(Nan::New("time").ToLocalChecked(), Nan::New((uint16_t)event->time));
 
-  if ((event->type >= EVENT_KEY_TYPED) && (event->type <= EVENT_KEY_RELEASED)) {
+  if ((type >= EVENT_KEY_TYPED) && (type <= EVENT_KEY_RELEASED)) {
     v8::Local<v8::Object> keyboard = Nan::New<v8::Object>();
-    if (event->type == EVENT_KEY_TYPED) {
+    if (type == EVENT_KEY_TYPED) {
       keyboard->Set(Nan::New("keychar").ToLocalChecked(), Nan::New((uint16_t)event->data.keyboard.keychar));
     }
     keyboard->Set(Nan::New("keycode").ToLocalChecked(), Nan::New((uint16_t)event->data.keyboard.keycode));
     keyboard->Set(Nan::New("rawcode").ToLocalChecked(), Nan::New((uint16_t)event->data.keyboard.rawcode));
 
     obj->Set(Nan::New("keyboard").ToLocalChecked(), keyboard);
-  } else if ((event->type >= EVENT_MOUSE_CLICKED) && (event->type < EVENT_MOUSE_WHEEL)) {
+  } else if ((type >= EVENT_MOUSE_CLICKED) && (type < EVENT_MOUSE_WHEEL)) {
     v8::Local<v8::Object> mouse = Nan::New<v8::Object>();
     mouse->Set(Nan::New("button").ToLocalChecked(), Nan::New((uint16_t)event->data.mouse.button));
     mouse->Set(Nan::New("clicks").ToLocalChecked(), Nan::New((uint16_t)event->data.mouse.clicks));
@@ -433,7 +435,7 @@ v8::Local<v8::Object> fillEventObject(uiohook_event *event) {
     mouse->Set(Nan::New("y").ToLocalChecked(), Nan::New((int16_t)event->data.mouse.y));
 
     obj->Set(Nan::New("mouse").ToLocalChecked(), mouse);
-  } else if (event->type == EVENT_MOUSE_WHEEL) {
+  } else if (type == EVENT_MOUSE_WHEEL) {
     v8::Local<v8::Object> wheel = Nan::New<v8::Object>();
     wheel->Set(Nan::New("amount").ToLocalChecked(), Nan::New((uint16_t)event->data.wheel.amount));
     wheel->Set(Nan::New("clicks").ToLocalChecked(), Nan::New((uint16_t)event->data.wheel.clicks));
@@ -451,17 +453,20 @@ v8::Local<v8::Object> fillEventObject(uiohook_event *event) {
 void HookProcessWorker::HandleProgressCallback(const uiohook_event *event, size_t size)
 {
   uiohook_event *ev;
+  int type;
   while (!zqueue.empty()) {
     ev = zqueue.front();
+    type = typequeue.front();
 
     HandleScope scope(Isolate::GetCurrent());
 
-    v8::Local<v8::Object> obj = fillEventObject(ev);
+    v8::Local<v8::Object> obj = fillEventObject(ev, type);
 
     v8::Local<v8::Value> argv[] = { obj };
     callback->Call(1, argv);
 
     zqueue.pop();
+    typequeue.pop();
   }
 }
 
