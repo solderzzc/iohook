@@ -3,10 +3,6 @@ version: "{build}"
 build: off
 skip_tags: true
 
-branches:
-  only:
-  - master
-
 environment:
   matrix:
     - arch: x86_64
