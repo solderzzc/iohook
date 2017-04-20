@@ -1,5 +1,5 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/ph54iicf29ipy8wm?svg=true)](https://ci.appveyor.com/project/WilixLead/iohook)
-[![Build Status](https://travis-ci.org/WilixLead/iohook.svg?branch=master)](https://travis-ci.org/WilixLead/iohook)
+[![Build status](https://ci.appveyor.com/api/projects/status/e8pias2necdcarf8?svg=true)](https://ci.appveyor.com/project/harryshipton/iohook)
+[![Build Status](https://travis-ci.org/harryshipton/iohook.svg?branch=master)](https://travis-ci.org/harryshipton/iohook)
 
 # iohook
 Node.js global native keyboard and mouse listener.  
