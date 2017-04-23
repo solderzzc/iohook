@@ -14,6 +14,7 @@ function mode(octal) {
 let arch = process.env.ARCH
   ? process.env.ARCH
     .replace('i686', 'ia32')
+    .replace('x32', 'ia32')
     .replace('x86_64', 'x64')
   : process.arch;
 
