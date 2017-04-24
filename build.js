@@ -27,34 +27,35 @@ let files = [];
 
 let chain = Promise.resolve();
 
-if(process.platform === 'win32') {
-    chain = chain.then(() => {
-        return new Promise((resolve, reject) => {
-            fs.copy('libuiohook/.libs/libuiohook-0.dll', 'build/Release/uiohook.dll', err => {
-                if(err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            })
-        });
-    });
-}
+// if(process.platform === 'win32') {
+//     chain = chain.then(() => {
+//         return new Promise((resolve, reject) => {
+//             fs.copy('libuiohook/.libs/libuiohook-0.dll', 'build/Release/uiohook.dll', err => {
+//                 if(err) {
+//                     reject(err);
+//                 } else {
+//                     resolve();
+//                 }
+//             })
+//         });
+//     });
+// }
 
 targets.forEach(parts => {
+    console.log(parts);
     let runtime = parts[0];
     let version = parts[1];
     chain = chain
-    .then(function () {
-        return build(runtime, version)
-    })
-    .then(function () {
-        return tarGz(runtime, version)
-    })
-    .catch(err => {
-        console.error(err);
-        process.exit(1);
-    })
+        .then(function () {
+            return build(runtime, version)
+        })
+        .then(function () {
+            return tarGz(runtime, version)
+        })
+        .catch(err => {
+            console.error(err);
+            process.exit(1);
+        })
 });
 
 chain = chain.then(function () {
@@ -75,6 +76,7 @@ function build(runtime, version) {
         proc.stdout.pipe(process.stdout);
         proc.stderr.pipe(process.stderr);
         proc.on('exit', function (code, sig) {
+            console.log('exit');
             if (code === 1) {
                 return reject(new Error('Failed to build...'))
             }
@@ -84,10 +86,10 @@ function build(runtime, version) {
 }
 
 function tarGz(runtime, version) {
-    return new Promise(function (resolve) {
+    return new Promise(function (resolve, reject) {
         if(process.platform === 'win32') {
             let filename = 'build/Release/iohook.node';
-            let uiohookdll = 'build/Release/uiohook.dll'
+            // let uiohookdll = 'build/Release/uiohook.dll'
             let abi = abis[runtime][version];
             let tarPath = 'prebuilds/' + pkg.name + '-v' + pkg.version + '-' + runtime + '-v' + abi + '-' + process.platform + '-' + arch + '.tar.gz';
             files.push(tarPath);
@@ -96,10 +98,10 @@ function tarGz(runtime, version) {
                     if (err) {
                         return reject(err);
                     }
-                    fs.stat(uiohookdll, function (err, iost) {
-                        if (err) {
-                            return reject(err);
-                        }
+                    // fs.stat(uiohookdll, function (err, iost) {
+                    //     if (err) {
+                    //         return reject(err);
+                    //     }
                         let tarStream = tar.pack();
                         let ws = fs.createWriteStream(tarPath);
                         let stream = tarStream.entry({
@@ -112,24 +114,24 @@ function tarGz(runtime, version) {
                         fs.createReadStream(filename)
                             .pipe(stream)
                             .on('finish', function() {
-                                let uiohookstream = tarStream.entry({
-                                    name: uiohookdll.replace(/\\/g, '/').replace(/:/g, '_'),
-                                    size: iost.size,
-                                    mode: iost.mode | mode('444') | mode('222'),
-                                    gid: iost.gid,
-                                    uid: iost.uid
-                                });
-                                fs.createReadStream(uiohookdll)
-                                    .pipe(uiohookstream)
-                                    .on('finish', function() {
+                                // let uiohookstream = tarStream.entry({
+                                //     name: uiohookdll.replace(/\\/g, '/').replace(/:/g, '_'),
+                                //     size: iost.size,
+                                //     mode: iost.mode | mode('444') | mode('222'),
+                                //     gid: iost.gid,
+                                //     uid: iost.uid
+                                // });
+                                // fs.createReadStream(uiohookdll)
+                                //     .pipe(uiohookstream)
+                                //     .on('finish', function() {
                                         tarStream.finalize();
                                         tarStream
                                             .pipe(zlib.createGzip())
                                             .pipe(ws)
                                             .on('close', resolve);
-                                    });
+                                    // });
                             })
-                    });
+                    // });
                 })
             });
         } else {
