@@ -33,6 +33,7 @@
   "homepage": "https://github.com/harryshipton/iohook#readme",
   "dependencies": {
     "bindings": "^1.2.1",
+    "fs-extra": "^2.1.2",
     "node-abi": "^2.0.0",
     "pump": "^1.0.2",
     "simple-get": "^2.4.0",
