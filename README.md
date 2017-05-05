@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/b1slkke0jjlx2f29?svg=true)](https://ci.appveyor.com/project/solderzzc/iohook)
+[![Build status](https://ci.appveyor.com/api/projects/status/6pbk3ukyodas2ppr?svg=true)](https://ci.appveyor.com/project/solderzzc/iohook)
 [![Build Status](https://travis-ci.org/solderzzc/iohook.svg?branch=master)](https://travis-ci.org/solderzzc/iohook)
 
 # iohook
