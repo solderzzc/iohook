@@ -3,12 +3,6 @@ const os = require('os');
 const EventEmitter = require('events');
 const path = require('path');
 
-// Try use handler if runtime and ABI is compatible  
-try {
-  const SegfaultHandler = require('segfault-handler');
-  SegfaultHandler.registerHandler("iohook-crash.log");
-} catch (e) {}
-
 const runtime = process.versions['electron'] ? 'electron' : 'node';
 const essential = runtime + '-v' + process.versions.modules + '-' + process.platform + '-' + process.arch;
 const modulePath = path.join(__dirname, 'builds', essential, 'build', 'Release', 'iohook.node');
@@ -31,14 +25,14 @@ class IOHook extends EventEmitter {
   constructor() {
     super();
     this.active = false;
-    
+
     this.load();
     this.setDebug(false);
   }
 
   /**
    * Start hook process
-   * @param enableLogger Turn on debug logging 
+   * @param enableLogger Turn on debug logging
    */
   start(enableLogger) {
     if (!this.active) {
@@ -48,7 +42,7 @@ class IOHook extends EventEmitter {
   }
 
   /**
-   * Shutdown event hook 
+   * Shutdown event hook
    */
   stop() {
     if (this.active) {
@@ -62,7 +56,7 @@ class IOHook extends EventEmitter {
   load() {
     NodeHookAddon.startHook(this._handler.bind(this), this.debug || false);
   }
-  
+
   /**
    * Unload native module and stop hook
    */
@@ -78,7 +72,7 @@ class IOHook extends EventEmitter {
   setDebug(mode) {
     NodeHookAddon.debugEnable(mode ? true : false);
   }
-  
+
   /**
    * Local event handler. Don't use it in your code!
    * @param msg Raw event message
@@ -88,11 +82,11 @@ class IOHook extends EventEmitter {
     if (this.active === false) {
       return;
     }
-    
+
     if (!msg) {
       return;
     }
-    
+
     if (events[msg.type]) {
       let event = msg.mouse || msg.keyboard || msg.wheel;
       event.type = events[msg.type];
