@@ -427,7 +427,6 @@ v8::Local<v8::Object> fillEventObject(uiohook_event event) {
     keyboard->Set(Nan::New("rawcode").ToLocalChecked(), Nan::New((uint16_t)event.data.keyboard.rawcode));
 
     obj->Set(Nan::New("keyboard").ToLocalChecked(), keyboard);
-
   } else if ((event.type >= EVENT_MOUSE_CLICKED) && (event.type < EVENT_MOUSE_WHEEL)) {
     v8::Local<v8::Object> mouse = Nan::New<v8::Object>();
     mouse->Set(Nan::New("button").ToLocalChecked(), Nan::New((uint16_t)event.data.mouse.button));
@@ -456,17 +455,15 @@ void HookProcessWorker::HandleProgressCallback(const uiohook_event * event, size
   uiohook_event ev;
   while (!zqueue.empty()) {
     ev = zqueue.front();
-    type = typequeue.front();
 
     HandleScope scope(Isolate::GetCurrent());
 
-    v8::Local<v8::Object> obj = fillEventObject(ev, type);
+    v8::Local<v8::Object> obj = fillEventObject(ev);
 
     v8::Local<v8::Value> argv[] = { obj };
     callback->Call(1, argv);
 
     zqueue.pop();
-    typequeue.pop();
   }
 }
 
@@ -527,7 +524,7 @@ NAN_MODULE_INIT(Init) {
 
   Nan::Set(target, Nan::New<String>("stopHook").ToLocalChecked(),
   Nan::GetFunction(Nan::New<FunctionTemplate>(StopHook)).ToLocalChecked());
-
+  
   Nan::Set(target, Nan::New<String>("debugEnable").ToLocalChecked(),
   Nan::GetFunction(Nan::New<FunctionTemplate>(DebugEnable)).ToLocalChecked());
 }
